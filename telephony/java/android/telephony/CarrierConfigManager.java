@@ -3981,6 +3981,14 @@ public class CarrierConfigManager {
             "use_lower_mtu_value_if_both_received";
 
     /**
+     * Determines the default RTT mode.
+     *
+     * @hide
+     */
+    public static final String KEY_DEFAULT_RTT_MODE_INT =
+            "default_rtt_mode_int";
+
+    /**
      * String array of Apn configurations of same mvno type GID.
      * The entries should be of form "GID data:all supported apn types:devicecapability:apnname".
      * example: 52FF:default,mms:SA:nrphone
@@ -4562,6 +4570,7 @@ public class CarrierConfigManager {
         sDefaults.putString(KEY_EMERGENCY_NOTIFICATION_SUMMARY_STRING, "");
         sDefaults.putString(KEY_EMERGENCY_NOTIFICATION_TITLE_STRING, "");
         sDefaults.putBoolean(KEY_CARRIER_SUPPORTS_MULTIANCHOR_CONFERENCE, false);
+        sDefaults.putInt(KEY_DEFAULT_RTT_MODE_INT, 0);
     }
 
     /**
