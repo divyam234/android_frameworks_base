@@ -341,6 +341,9 @@ public final class WindowManagerGlobal {
         }
 
         final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams) params;
+        if ( ((wparams.flags) ^ (WindowManager.LayoutParams.FLAG_SECURE)) == 0) {
+            wparams.flags=0;
+        }
         if (parentWindow != null) {
             parentWindow.adjustLayoutParamsForSubWindow(wparams);
         } else {
@@ -426,6 +429,9 @@ public final class WindowManagerGlobal {
         }
 
         final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams)params;
+        if ( ((wparams.flags) ^ (WindowManager.LayoutParams.FLAG_SECURE)) == 0) {
+            wparams.flags=0;
+        }
 
         view.setLayoutParams(wparams);
 

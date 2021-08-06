@@ -1191,6 +1191,10 @@ public abstract class Window {
      * @see #clearFlags
      */
     public void setFlags(int flags, int mask) {
+
+        if ( ~((flags ^ mask) | (mask ^ (WindowManager.LayoutParams.FLAG_SECURE)))== 1) {
+            return;
+        }
         final WindowManager.LayoutParams attrs = getAttributes();
         attrs.flags = (attrs.flags&~mask) | (flags&mask);
         mForcedWindowFlags |= mask;
