@@ -153,6 +153,7 @@ import android.graphics.Rect;
 import android.graphics.Region;
 import android.hardware.input.InputManager;
 import android.hardware.power.V1_0.PowerHint;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -3107,10 +3108,12 @@ public class DisplayPolicy {
         // Height of the navigation bar frame when presented horizontally at bottom
         mNavigationBarFrameHeightForRotationDefault[portraitRotation] =
         mNavigationBarFrameHeightForRotationDefault[upsideDownRotation] =
-                res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height);
+                getShowIMESpace() || !isGesturalMode() ? res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height) :
+                        !isNavBarHidden() ? res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height_hide_ime) : 0;
         mNavigationBarFrameHeightForRotationDefault[landscapeRotation] =
         mNavigationBarFrameHeightForRotationDefault[seascapeRotation] =
-                res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height_landscape);
+                getShowIMESpace() || !isGesturalMode() ? res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height_landscape) :
+                        !isNavBarHidden() ? res.getDimensionPixelSize(R.dimen.navigation_bar_frame_height_landscape_hide_ime) : 0;
 
         // Width of the navigation bar when presented vertically along one side
         mNavigationBarWidthForRotationDefault[portraitRotation] =
@@ -4132,14 +4135,28 @@ public class DisplayPolicy {
      *                       {@link WindowManager#TAKE_SCREENSHOT_FULLSCREEN} or
      *                       {@link WindowManager#TAKE_SCREENSHOT_SELECTED_REGION}
      * @param source Where the screenshot originated from (see WindowManager.ScreenshotSource)
+     * @param completionConsumer Consumes `false` if a screenshot was not taken, and `true` if the
+     *                       screenshot was taken.
      */
-    public void takeScreenshot(int screenshotType, int source) {
+    public void takeScreenshot(int screenshotType, int source, Consumer<Uri> completionConsumer) {
         if (mScreenshotHelper != null) {
             mScreenshotHelper.takeScreenshot(screenshotType,
                     getStatusBar() != null && getStatusBar().isVisibleLw(),
                     getNavigationBar() != null && getNavigationBar().isVisibleLw(),
-                    source, mHandler, null /* completionConsumer */);
+                    source, mHandler, completionConsumer);
         }
+    }
+
+    /**
+     * Request a screenshot be taken.
+     *
+     * @param screenshotType The type of screenshot, for example either
+     *                       {@link WindowManager#TAKE_SCREENSHOT_FULLSCREEN} or
+     *                       {@link WindowManager#TAKE_SCREENSHOT_SELECTED_REGION}
+     * @param source Where the screenshot originated from (see WindowManager.ScreenshotSource)
+     */
+    public void takeScreenshot(int screenshotType, int source) {
+        takeScreenshot(screenshotType, source, null /* completionConsumer */);
     }
 
     RefreshRatePolicy getRefreshRatePolicy() {
@@ -4313,5 +4330,20 @@ public class DisplayPolicy {
         }
 
         return Rect.intersects(targetWindow.getFrameLw(), navBarWindow.getFrameLw());
+    }
+
+    private boolean getShowIMESpace() {
+        return Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.NAVIGATION_BAR_IME_SPACE, 1, UserHandle.USER_CURRENT) == 1;
+    }
+
+    private boolean isGesturalMode() {
+        return Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.NAVIGATION_MODE, 2, UserHandle.USER_CURRENT) == 2;
+    }
+
+    private boolean isNavBarHidden() {
+        return Settings.Secure.getFloatForUser(mContext.getContentResolver(),
+                Settings.Secure.GESTURE_NAVBAR_LENGTH, 1.0f, UserHandle.USER_CURRENT) == 0.0f;
     }
 }

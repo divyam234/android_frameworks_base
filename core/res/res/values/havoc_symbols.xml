@@ -96,6 +96,10 @@
     <java-symbol type="string" name="config_pocketJudgeVendorSensorName" />
     <java-symbol type="string" name="config_pocketJudgeVendorProximitySensorName" />
 
+    <!-- Hide IME space -->
+    <java-symbol type="dimen" name="navigation_bar_frame_height_hide_ime" />
+    <java-symbol type="dimen" name="navigation_bar_frame_height_landscape_hide_ime" />
+
     <!-- Alert slider -->
     <java-symbol type="string" name="alert_slider_state_path" />
     <java-symbol type="string" name="alert_slider_uevent_match_path" />
@@ -143,14 +147,6 @@
 
     <!-- Whether device has VOOC charging support -->
     <java-symbol type="bool" name="config_hasVoocCharger" />
-
-    <!-- Gaming mode -->
-    <java-symbol type="drawable" name="ic_gaming_notif" />
-    <java-symbol type="string" name="notification_channel_gaming" />
-    <java-symbol type="string" name="gaming_mode_notification_title" />
-    <java-symbol type="string" name="gaming_mode_notification_content" />
-    <java-symbol type="string" name="gaming_mode_enabled_toast" />
-    <java-symbol type="string" name="gaming_mode_disabled_toast" />
 
     <!-- Whether device has a notch -->
     <java-symbol type="bool" name="config_haveNotch" />
@@ -227,5 +223,8 @@
     <java-symbol type="string" name="sleep_mode_notification_content" />
     <java-symbol type="string" name="sleep_mode_enabled_toast" />
     <java-symbol type="string" name="sleep_mode_disabled_toast" />
+
+    <!-- Whether to enable performance tuning in Gaming mode -->
+    <java-symbol type="bool" name="config_enableGamingPerformanceTuning" />
 
 </resources>

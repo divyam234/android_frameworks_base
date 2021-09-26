@@ -37,6 +37,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
+import android.widget.ImageSwitcher;
 import android.widget.LinearLayout;
 
 import com.android.systemui.Dependency;
@@ -48,6 +49,7 @@ import com.android.systemui.statusbar.StatusBarState;
 import com.android.systemui.BatteryMeterView;
 import com.android.systemui.statusbar.phone.StatusBarIconController.DarkIconManager;
 import com.android.systemui.statusbar.phone.StatusIconContainer;
+import com.android.systemui.statusbar.phone.TickerView;
 import com.android.systemui.statusbar.policy.Clock;
 import com.android.systemui.statusbar.policy.EncryptionHelper;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
@@ -95,6 +97,9 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private boolean mHasCarrierLabel;
 
     private View mBatteryBars[] = new View[2];
+
+    private View mTickerViewFromStub;
+    private View mTickerViewContainer;
 
     private class SettingsObserver extends ContentObserver {
         SettingsObserver(Handler handler) {
@@ -193,6 +198,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         initOperatorName();
         mSettingsObserver.observe();
         updateSettings(false);
+        initTickerView();
     }
 
     @Override
@@ -265,9 +271,11 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
             if ((state1 & DISABLE_SYSTEM_INFO) != 0) {
                 hideSystemIconArea(animate);
                 hideOperatorName(animate);
+                hideTicker(animate);
             } else {
                 showSystemIconArea(animate);
                 showOperatorName(animate);
+                showTicker(animate);
             }
         }
         if ((diff1 & DISABLE_NOTIFICATION_ICONS) != 0) {
@@ -410,6 +418,18 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         }
     }
 
+    public void showTicker(boolean animate) {
+        if (mTickerViewContainer != null) {
+            animateShow(mTickerViewContainer, animate);
+        }
+    }
+    
+    public void hideTicker(boolean animate) {
+        if (mTickerViewContainer != null) {
+            animateHide(mTickerViewContainer, animate, true);
+        }
+    }
+
     /**
      * Hides a view.
      */
@@ -532,5 +552,17 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
                  animateShow(mClockView, animate);
             }
         }
+    }
+
+    private void initTickerView() {
+        mTickerViewContainer = mStatusBar.findViewById(R.id.ticker_container);
+        View tickerStub = mStatusBar.findViewById(R.id.ticker_stub);
+        if (mTickerViewFromStub == null && tickerStub != null) {
+            mTickerViewFromStub = ((ViewStub) tickerStub).inflate();
+        }
+        TickerView tickerView = (TickerView) mStatusBar.findViewById(R.id.tickerText);
+        ImageSwitcher tickerIcon = (ImageSwitcher) mStatusBar.findViewById(R.id.tickerIcon);
+        mStatusBarComponent.createTicker(
+                getContext(), mStatusBar, tickerView, tickerIcon, mTickerViewFromStub);
     }
 }

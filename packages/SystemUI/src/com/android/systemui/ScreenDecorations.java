@@ -150,9 +150,11 @@ public class ScreenDecorations extends SystemUI implements Tunable,
     private Handler mHandler;
     private boolean mPendingRotationChange;
     private boolean mIsRoundedCornerMultipleRadius;
+    private int mRoundedSize = -1;
     private int mImmerseModeSetting = 0;
     private boolean mTopEnabled = true;
     private Point mZeroPoint = new Point(0, 0);
+
     private final SysuiStatusBarStateController mStatusBarStateController =
             (SysuiStatusBarStateController) Dependency.get(StatusBarStateController.class);
     private boolean mFullscreenMode = false;
@@ -244,6 +246,9 @@ public class ScreenDecorations extends SystemUI implements Tunable,
         mIsRoundedCornerMultipleRadius = mContext.getResources().getBoolean(
                 R.bool.config_roundedCornerMultipleRadius);
         updateRoundedCornerRadii();
+
+        mMainHandler.post(() -> mTunerService.addTunable(this, SIZE));
+
         setupDecorations();
         setupCameraListener();
 
@@ -315,8 +320,6 @@ public class ScreenDecorations extends SystemUI implements Tunable,
             DisplayMetrics metrics = new DisplayMetrics();
             mDisplayManager.getDisplay(DEFAULT_DISPLAY).getMetrics(metrics);
             mDensity = metrics.density;
-
-            mMainHandler.post(() -> mTunerService.addTunable(this, SIZE));
 
             // Watch color inversion and invert the overlay as needed.
             if (mColorInversionSetting == null) {
@@ -736,11 +739,11 @@ public class ScreenDecorations extends SystemUI implements Tunable,
         }
     }
     private boolean hasRoundedCorners() {
-        //return mRoundedDefault.x > 0
-        //        || mRoundedDefaultBottom.x > 0
-        //        || mRoundedDefaultTop.x > 0
-        //        || mIsRoundedCornerMultipleRadius;
-        return true;
+        return mRoundedDefault.x > 0
+                || mRoundedDefaultBottom.x > 0
+                || mRoundedDefaultTop.x > 0
+                || mIsRoundedCornerMultipleRadius
+                || mRoundedSize > 0;
     }
 
     private boolean shouldShowRoundedCorner(@BoundsPosition int pos) {
@@ -769,6 +772,10 @@ public class ScreenDecorations extends SystemUI implements Tunable,
 
     static boolean shouldDrawCutout(Context context) {
         ContentResolver cr = context.getContentResolver();
+        boolean hideNotch = cr != null && System.getIntForUser(cr,
+                System.DISPLAY_HIDE_NOTCH, 0, UserHandle.USER_CURRENT) != 0;
+        if (hideNotch)
+            return false;
         boolean newImmerseMode = cr != null && System.getIntForUser(cr,
                         System.DISPLAY_CUTOUT_MODE, 0, UserHandle.USER_CURRENT) != 0;
         return !newImmerseMode && context.getResources().getBoolean(
@@ -795,47 +802,19 @@ public class ScreenDecorations extends SystemUI implements Tunable,
                 Point size = mRoundedDefault;
                 Point sizeTop = mRoundedDefaultTop;
                 Point sizeBottom = mRoundedDefaultBottom;
-                boolean sizeSet = true;
                 if (newValue != null) {
-                    try {
-                        int s = (int) (Integer.parseInt(newValue) * mDensity);
-                        size = new Point(s, s);
-                        sizeSet = true;
-                    } catch (Exception e) {
-                    }
-                } else {
-                    int s = (int) (Secure.getIntForUser(mContext.getContentResolver(), SIZE,
-                            -1, UserHandle.USER_CURRENT) * mDensity);
-                    size = new Point(s, s);
-                }
-
-                // Special case, default behavaiour (framework values)
-                if ((size.x == (int) (-1 * mDensity)) || (size.y == (int) (-1 * mDensity))) {
-                    sizeSet = false; // Assume no sizes were set
-                }
-
-                // Choose a sane safe size in immerse, often
-                // defaults are too large
-                if (!sizeSet && mImmerseMode) {
-                    int s = (int) (20 * mDensity);
-                    size = new Point(s ,s);
-                    sizeSet = true;
-                }
-                // If we set a runtime size, let's ignore the
-                // bottom and top resources
-                if (size.x < 0 || size.y < 0) size = new Point(0, 0);
-                if (sizeSet) {
-                    sizeTop = size;
-                    sizeBottom = size;
-                } else {
-                    if (sizeTop.x == 0 && sizeTop.y == 0) {
-                        sizeTop = size;
-                    }
-                    if (sizeBottom.x == 0 && sizeBottom.y == 0) {
-                        sizeBottom = size;
+                    // Save user defined value
+                    mRoundedSize =
+                        TunerService.parseInteger(newValue, -1);
+                    // Calculate new size if user defined value available
+                    if (mRoundedSize >= 0) {
+                        try {
+                            int s = (int) (mRoundedSize * mDensity);
+                            size = new Point(s, s);
+                        } catch (Exception e) {
+                        }
                     }
                 }
-
                 updateRoundedCornerSize(size, sizeTop, sizeBottom);
             }
         });
@@ -848,13 +827,18 @@ public class ScreenDecorations extends SystemUI implements Tunable,
         if (mOverlays == null) {
             return;
         }
-        if (!mTopEnabled && mRotation == RotationUtils.ROTATION_NONE) {
-            sizeTop = mZeroPoint;
-        } else if (sizeTop.x == 0) {
+        if (sizeDefault.x > 0) {
             sizeTop = sizeDefault;
-        }
-        if (sizeBottom.x == 0) {
             sizeBottom = sizeDefault;
+        } else {
+            if (!mTopEnabled && mRotation == RotationUtils.ROTATION_NONE) {
+                sizeTop = mZeroPoint;
+            } else if (sizeTop.x == 0) {
+                sizeTop = sizeDefault;
+            }
+            if (sizeBottom.x == 0) {
+                sizeBottom = sizeDefault;
+            }
         }
 
         for (int i = 0; i < BOUNDS_POSITION_LENGTH; i++) {
@@ -1285,13 +1269,13 @@ public class ScreenDecorations extends SystemUI implements Tunable,
                 ContentResolver resolver = mContext.getContentResolver();
                 resolver.registerContentObserver(System.getUriFor(
                         System.DISPLAY_CUTOUT_MODE), false, this);
+                resolver.registerContentObserver(System.getUriFor(
+                        System.DISPLAY_HIDE_NOTCH), false, this);
             }
 
             @Override
             public void onChange(boolean selfChange, Uri uri) {
-                if (uri.equals(System.getUriFor(System.DISPLAY_CUTOUT_MODE))) {
-                    update();
-                }
+                update();
             }
 
             @Override
@@ -1380,11 +1364,11 @@ public class ScreenDecorations extends SystemUI implements Tunable,
 
     private void updateCutoutMode() {
         boolean newImmerseMode;
-        if (mRotation == RotationUtils.ROTATION_LANDSCAPE ||
-                mRotation == RotationUtils.ROTATION_SEASCAPE)
-            newImmerseMode = false;
-        else
+        if (mRotation == RotationUtils.ROTATION_NONE) {
             newImmerseMode = mImmerseModeSetting == 1;
+        } else {
+            newImmerseMode = false;
+        }
         if (mImmerseMode != newImmerseMode) {
             mImmerseMode = newImmerseMode;
             if (mOverlays != null) {

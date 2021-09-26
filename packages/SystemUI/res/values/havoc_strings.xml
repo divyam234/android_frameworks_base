@@ -96,10 +96,6 @@
     <!-- Name of the roaming status bar icon. -->
     <string name="status_bar_roaming">Roaming</string>
 
-    <!-- Gaming mode -->
-    <string name="gaming_mode_not_enabled">Gaming mode is disabled in settings</string>
-    <string name="quick_settings_gaming_mode_label">Gaming mode</string>
-
     <!-- Smart Pixels QS Tile -->
     <string name="quick_settings_smart_pixels">Smart Pixels</string>
     <string name="quick_settings_smart_pixels_on_power_save">Auto-enabled Smart Pixels</string>
@@ -223,6 +219,7 @@
     <!-- Screenrecorder -->
     <string name="screenrecord_stopdot_label">Show dot to stop recording</string>
     <string name="screenrecord_lowquality_label">Lower recording quality</string>
+    <string name="screenrecord_longer_timeout_switch_label">Increase recording size limit</string>
 
     <!-- Screenshot QS tile -->
     <string name="quick_settings_screenshot_label">Screenshot</string>
@@ -234,5 +231,8 @@
 
     <!-- Sleep Mode -->
     <string name="quick_settings_sleep_mode_label">Sleep Mode</string>
+
+    <!-- Screenshot Delete Toast -->
+    <string name="delete_screenshot_toast">Screenshot deleted</string>
 
 </resources>

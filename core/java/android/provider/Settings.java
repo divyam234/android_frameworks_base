@@ -3993,6 +3993,17 @@ public final class Settings {
         public static final String PEAK_REFRESH_RATE = "peak_refresh_rate";
 
         /**
+         * The user selected preferred refresh rate in frames per second.
+         *
+         * This defines the refresh rate at which UI will run, provided it
+         * falls in the range of minimum and peak refresh rate.
+         *
+         * If this isn't set, the system falls back to a device specific default.
+         * @hide
+         */
+        public static final String PREFERRED_REFRESH_RATE = "preferred_refresh_rate";
+
+        /**
          * Whether refresh rate should be switched to 60Hz on power save mode.
          * @hide
          */
@@ -5677,62 +5688,6 @@ public final class Settings {
         public static final String OEM_BLACK_MODE = "oem_black_mode";
 
         /**
-         * Gaming mode master switch
-         * @hide
-         */
-        public static final String GAMING_MODE_ENABLED = "gaming_mode_enabled";
-
-        /**
-         * Gaming mode active state - to disable via notification / tile
-         * @hide
-         */
-        public static final String GAMING_MODE_ACTIVE = "gaming_mode_active";
-
-        /**
-         * Package name of apps for enabling Gaming mode
-         * @hide
-         */
-        public static final String GAMING_MODE_VALUES = "gaming_mode_values";
-        public static final String GAMING_MODE_DUMMY = "gaming_mode_dummy";
-
-        /**
-         * Whether to disable hardware keys in gaming mode
-         * @hide
-         */
-        public static final String GAMING_MODE_HW_KEYS_TOGGLE = "gaming_mode_hw_keys_toggle";
-
-        /**
-         * Whether to disable heads up gaming mode
-         * @hide
-         */
-        public static final String GAMING_MODE_HEADSUP_TOGGLE = "gaming_mode_headsup_toggle";
-
-        /**
-         * Ringer in gaming mode (0:OFF, 1:Vibrate, 2:DND, 3:Silent)
-         * @hide
-         */
-        public static final String GAMING_MODE_RINGER_MODE = "gaming_mode_ringer_mode";
-
-        /**
-         * Whether to show notifications/toasts (0:OFF, 1:notifications, 2:toasts, 3: all)
-         * @hide
-         */
-        public static final String GAMING_MODE_NOTIFICATIONS = "gaming_mode_notifications";
-
-        /**
-         * Whether to lock brightness in gaming mode
-         * @hide
-         */
-        public static final String GAMING_MODE_MANUAL_BRIGHTNESS_TOGGLE = "gaming_mode_manual_brightness_toggle";
-
-        /**
-         * Whether to automatically enable the gaming mode
-         * if the launched app is a game
-         * @hide
-         */
-        public static final String GAMING_MODE_DYNAMIC_STATE = "gaming_mode_dynamic_state";
-
-        /**
          * Applications list where heasdup should't show
          *
          * @hide
@@ -6196,7 +6151,8 @@ public final class Settings {
         public static final String VOLUME_ANSWER_CALL = "volume_answer_call";
 
         /**
-         * Whether to take partial screenshot with volume down + power click.
+         * SBC HD priority - whether to use dual channel for SBC by default
+         * @hide
          */
         public static final String CLICK_PARTIAL_SCREENSHOT = "click_partial_screenshot";
 
@@ -6204,6 +6160,198 @@ public final class Settings {
          * @hide
          */
         public static final String WFD_LEGACY_VIDEO_MODE = "wfd_legacy_video_mode";
+
+        /**
+         * Whether to enable anti falsing classifier on the lockscreen.
+         */
+        public static final String KEYGUARD_ANTI_FALSING_ENABLED = "keyguard_anti_falsing_enabled";
+
+        /**
+         * Wether auto brightness is applied one shot when screen is turned on
+         */
+        public static final String AUTO_BRIGHTNESS_ONE_SHOT = "auto_brightness_one_shot";
+
+        /**          
+          * Setting to enable/disable gaming mode
+          * @hide
+          */
+        public static final String GAMING_MODE_ENABLED = "gaming_mode_enabled";
+
+        /**
+          * 0 - user is not in gaming mode
+          * 1 - user is in gaming mode
+          * @hide
+          */
+        public static final String GAMING_MODE_ACTIVE = "gaming_mode_active";
+
+        /**
+          * Dynamically identify the top application and add it to the list
+          * @hide
+          */
+        public static final String GAMING_MODE_DYNAMIC_ADD = "gaming_mode_dynamic_add";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_APP_LIST = "gaming_mode_app_list";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_REMOVED_APP_LIST = "gaming_mode_removed_app_list";
+
+        /**
+          * Opacity adjustment for the GamingMode's menu
+          * @hide
+          */
+        public static final String GAMING_MODE_MENU_OPACITY = "gaming_mode_menu_opacity";
+
+        /**
+          * Auto answer call in gaming mode
+          * @hide
+          */
+        public static final String GAMING_MODE_AUTO_ANSWER_CALL = "gaming_mode_auto_answer_call";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DISABLE_AUTO_BRIGHTNESS = "gaming_mode_disable_auto_brightness";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DISABLE_NOTIFICATION_ALERT = "gaming_mode_disable_notification_alert";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DISABLE_RINGTONE = "gaming_mode_disable_ringtone";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DISABLE_HW_KEYS = "gaming_mode_disable_hw_keys";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DISABLE_GESTURE = "gaming_mode_disable_gesture";
+
+        /**
+          * Change performance level in gaming mode
+          * @hide
+          */
+        public static final String GAMING_MODE_CHANGE_PERFORMANCE_LEVEL = "gaming_mode_change_performance_level";
+
+        /**
+          * Prefermance level
+          * 0 - 6 : Powersave - Performance
+          * @hide
+          */
+        public static final String GAMING_MODE_PERFORMANCE_LEVEL = "gaming_mode_performance_level";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_QS_APP_LIST = "gaming_mode_qs_app_list";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_SHOW_DANMAKU = "gaming_mode_show_danmaku";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_SPEED_HORIZONTAL = "gaming_mode_danmaku_speed_horizontal";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_SPEED_VERTICAL = "gaming_mode_danmaku_speed_vertical";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_SIZE_HORIZONTAL = "gaming_mode_danmaku_size_horizontal";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_SIZE_VERTICAL = "gaming_mode_danmaku_size_vertical";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_DYNAMIC_NOTIFICATION_FILTER = "gaming_mode_danmaku_dynamic_notification_filter";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_DANMAKU_APP_BLACKLIST = "gaming_mode_danmaku_app_blacklist";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_USE_GAME_DRIVER = "gaming_mode_use_game_driver";
+
+        /**
+          * @hide
+          */
+        public static final String GAMING_MODE_USE_OVERLAY_MENU = "gaming_mode_use_overlay_menu";
+
+        /**
+         * Whether to show the notification ticker on the status bar
+         * @hide
+         */
+        public static final String STATUS_BAR_SHOW_TICKER = "status_bar_show_ticker";
+
+        /**
+         * Ticker mode
+         * 0: Notifications
+         * 1: Notifications & media
+         * @hide
+         */
+        public static final String STATUS_BAR_TICKER_MODE = "status_bar_ticker_mode";
+
+        /**
+         * Ticker animation
+         * 0: Fade animation
+         * 1: Scrolling ticker
+         * @hide
+         */
+        public static final String STATUS_BAR_TICKER_ANIMATION_MODE =
+                "status_bar_ticker_animation_mode";
+
+        /**
+         * Status bar ticker duration in milliseconds.
+         * @hide
+         */
+        public static final String STATUS_BAR_TICKER_TICK_DURATION =
+                "status_bar_ticker_tick_duration";
+
+        /**
+         * Whether to show IME space
+         * @hide
+         */
+        public static final String NAVIGATION_BAR_IME_SPACE = "navigation_bar_ime_space";
+
+        /**
+         * Whether to hide notch fill
+         * @hide
+         */
+        public static final String DISPLAY_HIDE_NOTCH = "display_hide_notch";
+
+        /**
+         * FOD recognizing animation
+         * @hide
+         */
+        public static final String FOD_RECOGNIZING_ANIMATION = "fod_recognizing_animation";
+
+        /**
+         * @hide
+         */
+        public static final String RECENTS_LOCKED_TASKS = "recents_locked_tasks";
 
         /**
          * Keys we no longer back up under the current schema, but want to continue to
@@ -10030,6 +10178,24 @@ public final class Settings {
                 "night_display_last_activated_time";
 
         /**
+         * Display color balance for the red channel, from 0 to 255.
+         * @hide
+         */
+        public static final String DISPLAY_COLOR_BALANCE_RED = "display_color_balance_red";
+
+        /**
+         * Display color balance for the green channel, from 0 to 255.
+         * @hide
+         */
+        public static final String DISPLAY_COLOR_BALANCE_GREEN = "display_color_balance_green";
+
+        /**
+         * Display color balance for the blue channel, from 0 to 255.
+         * @hide
+         */
+        public static final String DISPLAY_COLOR_BALANCE_BLUE = "display_color_balance_blue";
+
+        /**
          * Control whether display white balance is currently enabled.
          * @hide
          */
@@ -10726,6 +10892,18 @@ public final class Settings {
          * @hide
          */
         public static final String SLEEP_MODE_RINGER_MODE = "sleep_mode_ringer_mode";
+
+        /**
+         * Setting to allow setting rounded corner size and content padding
+         * @hide
+         */
+        public static final String SYSUI_ROUNDED_SIZE = "sysui_rounded_size";
+
+        /**
+         * Setting to disable rounded corner preferences and use frameworks values instead
+         * @hide
+         */
+        public static final String SYSUI_ROUNDED_FWVALS = "sysui_rounded_fwvals";
 
         /**
          * These entries are considered common between the personal and the managed profile,

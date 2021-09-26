@@ -18,18 +18,21 @@ package com.android.keyguard;
 
 import android.app.ActivityManager;
 import android.app.IActivityManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Slog;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
@@ -40,6 +43,7 @@ import androidx.core.graphics.ColorUtils;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
+import com.android.systemui.statusbar.phone.NotificationIconContainer;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 
 import java.io.FileDescriptor;
@@ -61,7 +65,7 @@ public class KeyguardStatusView extends GridLayout implements
     private KeyguardClockSwitch mClockView;
     private TextView mOwnerInfo;
     private KeyguardSliceView mKeyguardSlice;
-    private View mNotificationIcons;
+    private NotificationIconContainer mNotificationIcons;
     private Runnable mPendingMarqueeStart;
     private Handler mHandler;
 
@@ -211,6 +215,11 @@ public class KeyguardStatusView extends GridLayout implements
      * Moves clock, adjusting margins when slice content changes.
      */
     private void onSliceContentChanged() {
+        if (mNotificationIcons != null) {
+            mNotificationIcons.setCenter(isTypeClock() || isOosClock() ? false : true);
+            mNotificationIcons.setCustomPaddingStart(getCustomClockPaddingStart());
+        }
+
         final boolean hasHeader = mKeyguardSlice.hasHeader();
         mClockView.setKeyguardShowingHeader(hasHeader);
         if (mShowingHeader == hasHeader) {
@@ -297,10 +306,38 @@ public class KeyguardStatusView extends GridLayout implements
                 com.android.internal.R.string.global_action_logout));
     }
 
+    private boolean isTypeClock() {
+        final ContentResolver resolver = mContext.getContentResolver();
+        String currentClock = Settings.Secure.getString(
+            resolver, Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_FACE);
+        return currentClock == null ? false : currentClock.contains("TypeClockController");
+    }
+
+    private boolean isOosClock() {
+        final ContentResolver resolver = mContext.getContentResolver();
+        String currentClock = Settings.Secure.getString(
+            resolver, Settings.Secure.LOCK_SCREEN_CUSTOM_CLOCK_FACE);
+        return currentClock == null ? false : currentClock.contains("OOS");
+    }
+
+    private int getCustomClockPaddingStart() {
+        return isTypeClock() ? (int) mContext.getResources().getDimension(R.dimen.type_clock_left_padding) :
+                    (int) mContext.getResources().getDimension(R.dimen.oos_clock_left_padding);
+    }
+
     private void updateOwnerInfo() {
         if (mOwnerInfo == null) return;
         String info = mLockPatternUtils.getDeviceOwnerInfo();
         if (info == null) {
+            // If left aligned style clock, align the textView to start else keep it center.
+            if (isTypeClock() || isOosClock()) {
+                mOwnerInfo.setPaddingRelative(getCustomClockPaddingStart() + 8, 0, 0, 0);
+                mOwnerInfo.setGravity(Gravity.START);
+            } else {
+                mOwnerInfo.setPaddingRelative(0, 0, 0, 0);
+                mOwnerInfo.setGravity(Gravity.CENTER);
+            }
+
             // Use the current user owner information if enabled.
             final boolean ownerInfoEnabled = mLockPatternUtils.isOwnerInfoEnabled(
                     KeyguardUpdateMonitor.getCurrentUser());

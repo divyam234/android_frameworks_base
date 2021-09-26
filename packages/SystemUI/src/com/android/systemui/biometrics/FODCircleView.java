@@ -19,6 +19,7 @@ package com.android.systemui.biometrics;
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_ASSISTANT;
 import static android.app.WindowConfiguration.WINDOWING_MODE_UNDEFINED;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager.StackInfo;
 import android.app.ActivityTaskManager;
 import android.app.admin.DevicePolicyManager;
@@ -81,6 +82,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
     private final WindowManager.LayoutParams mParams = new WindowManager.LayoutParams();
     private final WindowManager.LayoutParams mPressedParams = new WindowManager.LayoutParams();
     private final WindowManager mWindowManager;
+    private final FODAnimation mFODAnimation;
 
     private IFingerprintInscreen mFingerprintInscreenDaemon;
     private Context mContext;
@@ -100,6 +102,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
     private boolean mScreenOffFodEnabled;
     private boolean mScreenOffFodIconEnabled;
     private boolean mIsAssistantVisible = false;
+    private boolean mIsRecognizingAnimEnabled;
 
     private Handler mHandler;
 
@@ -155,10 +158,8 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
         public void onDreamingStateChanged(boolean dreaming) {
             mIsDreaming = dreaming;
 
-            if (mIsKeyguard && mUpdateMonitor.isFingerprintDetectionRunning()) {
+            if (mIsKeyguard && mIsBiometricRunning) {
                 show();
-            } else {
-                hide();
             }
 
             if (dreaming) {
@@ -186,24 +187,25 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
             } else {
                 setAlpha(getFODAlpha());
             }
+            if (mFODAnimation != null && mIsRecognizingAnimEnabled) {
+                mFODAnimation.setAnimationKeyguard(mIsKeyguard);
+            }
+
+            if (mFODAnimation != null) {
+                mFODAnimation.setAnimationKeyguard(showing);
+            }
         }
 
         @Override
         public void onKeyguardBouncerChanged(boolean isBouncer) {
             mIsBouncer = isBouncer;
-            if (!mIsKeyguard) {
-                return;
-            }
-
-            if (mUpdateMonitor.isFingerprintDetectionRunning() || mFpDisabled) {
+            if (mIsBiometricRunning) {
                 if (isPinOrPattern(mUpdateMonitor.getCurrentUser()) || !isBouncer) {
                     mIsAssistantVisible = false;
                     show();
                 } else {
                     hide();
                 }
-            } else {
-                hide();
             }
         }
 
@@ -214,14 +216,14 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
 
         @Override
         public void onStartedWakingUp() {
-            if (mUpdateMonitor.isFingerprintDetectionRunning() && mIsKeyguard) {
+            if (mIsBiometricRunning && mIsKeyguard) {
                 show();
             }
         }
 
         @Override
         public void onScreenTurnedOn() {
-            if (mUpdateMonitor.isFingerprintDetectionRunning() && mIsKeyguard) {
+            if (mIsBiometricRunning && mIsKeyguard) {
                 show();
                 if (!mShouldRemoveIconOnAOD) triggerFodIconAnimation();
             }
@@ -244,6 +246,16 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
         public void onStrongAuthStateChanged(int userId) {
             setAlpha(getFODAlpha());
         }
+
+        @Override
+        public void onBiometricHelp(int msgId, String helpString,
+                                    BiometricSourceType biometricSourceType) {
+            if (msgId == KeyguardUpdateMonitor.BIOMETRIC_HELP_FINGERPRINT_NOT_RECOGNIZED) {
+                hideCircle();
+                if (mFODAnimation != null && mIsRecognizingAnimEnabled)
+                    mHandler.post(() -> mFODAnimation.hideFODAnimation());
+            }
+        }
     };
 
     private final TaskStackChangeListener
@@ -260,7 +272,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
                     }
                     return;
                 }
-                mIsAssistantVisible = stackInfo.visible;
+                if (stackInfo != null) mIsAssistantVisible = stackInfo.visible;
                 if (mIsAssistantVisible) {
                     mHandler.post(() -> hide());
                 }
@@ -305,6 +317,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
 
     private CustomSettingsObserver mCustomSettingsObserver;
 
+    @SuppressLint("RtlHardcoded")
     public FODCircleView(Context context) {
         super(context);
         mContext = context;
@@ -327,10 +340,10 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
 
         Resources res = context.getResources();
 
-        mPaintFingerprint.setColor(res.getColor(R.color.config_fodColor));
+        mPaintFingerprint.setColor(res.getColor(R.color.config_fodColor, null));
         mPaintFingerprint.setAntiAlias(true);
 
-        mPaintFingerprintBackground.setColor(res.getColor(R.color.config_fodColorBackground));
+        mPaintFingerprintBackground.setColor(res.getColor(R.color.config_fodColorBackground, null));
         mPaintFingerprintBackground.setAntiAlias(true);
 
         mWindowManager = context.getSystemService(WindowManager.class);
@@ -376,6 +389,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
 
         mWindowManager.addView(this, mParams);
 
+        updateSettings();
         updatePosition();
         hide();
 
@@ -386,6 +400,8 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
     
         updateCutoutFlags();
         Dependency.get(ConfigurationController.class).addCallback(this);
+
+        mFODAnimation = new FODAnimation(context, mPositionY);
     }
 
     @Override
@@ -410,6 +426,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
         super.onDraw(canvas);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getAxisValue(MotionEvent.AXIS_X);
@@ -433,11 +450,15 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
             return true;
         }
 
+        if (mFODAnimation != null && mIsRecognizingAnimEnabled) {
+            mHandler.post(() -> mFODAnimation.hideFODAnimation());
+        }
         return false;
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+        updateSettings();
         updatePosition();
     }
 
@@ -506,6 +527,13 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
             dispatchPress();
         });
 
+        if (mFODAnimation != null && mIsRecognizingAnimEnabled) {
+            if (mIsDreaming) {
+                updatePosition();
+            }
+            mHandler.post(() -> mFODAnimation.showFODAnimation());
+        }
+
         setImageDrawable(null);
         updatePosition();
         invalidate();
@@ -521,6 +549,10 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
             dispatchRelease();
         });
         setDim(false);
+
+        if (mFODAnimation != null && mIsRecognizingAnimEnabled) {
+            mHandler.post(() -> mFODAnimation.hideFODAnimation());
+        }
 
         setKeepScreenOn(false);
     }
@@ -562,6 +594,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
             return;
         }
 
+        updateSettings();
         updatePosition();
         mCustomSettingsObserver.observe();
         mCustomSettingsObserver.update();
@@ -606,8 +639,10 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
                 mUpdateMonitor.getStrongAuthTracker();
         mCanUnlockWithFp = (biometrics && strongAuthTracker.isUnlockingWithBiometricAllowed(true)
                 || !biometrics) && !mFpDisabled;
+        mFODAnimation.setCanUnlock(mCanUnlockWithFp);
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     private void updatePosition() {
         Display defaultDisplay = mWindowManager.getDefaultDisplay();
 
@@ -698,6 +733,14 @@ public class FODCircleView extends ImageView implements ConfigurationListener {
         }
 
         return false;
+    }
+
+    private void updateSettings() {
+        mIsRecognizingAnimEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.FOD_RECOGNIZING_ANIMATION, 1) != 0;
+        if (mFODAnimation != null) {
+            mFODAnimation.update(mIsRecognizingAnimEnabled);
+        }
     }
 
     private class BurnInProtectionTask extends TimerTask {
