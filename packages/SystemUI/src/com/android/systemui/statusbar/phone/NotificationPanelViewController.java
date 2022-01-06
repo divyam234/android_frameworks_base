@@ -909,7 +909,7 @@ public class NotificationPanelViewController extends PanelViewController {
         } else {
             int totalHeight = mView.getHeight();
             int bottomPadding = Math.max(mIndicationBottomPadding, mAmbientIndicationBottomPadding);
-            int clockPreferredY = mKeyguardStatusView.getClockPreferredY(totalHeight);
+            int clockPreferredY = (int) mKeyguardStatusView.getClockPreferredY(totalHeight);
             boolean bypassEnabled = mKeyguardBypassController.getBypassEnabled();
             final boolean
                     hasVisibleNotifications =
@@ -3103,9 +3103,9 @@ public class NotificationPanelViewController extends PanelViewController {
                 !mDozeParameters.getDisplayNeedsBlanking() && mDozeParameters.getAlwaysOn();
         ContentResolver resolver = mView.getContext().getContentResolver();
         boolean pulseLights = Settings.System.getIntForUser(resolver,
-                Settings.System.NOTIFICATION_PULSE, 0, UserHandle.USER_CURRENT) != 0;
+                Settings.System.NOTIFICATION_PULSE, 1, UserHandle.USER_CURRENT) != 0;
         boolean ambientLights = Settings.System.getIntForUser(resolver,
-                Settings.System.AOD_NOTIFICATION_PULSE, 0, UserHandle.USER_CURRENT) != 0;
+                Settings.System.AOD_NOTIFICATION_PULSE, 1, UserHandle.USER_CURRENT) != 0;
         boolean aodEnabled = Settings.Secure.getIntForUser(resolver,
                 Settings.Secure.DOZE_ALWAYS_ON, 0, UserHandle.USER_CURRENT) == 1;
         ExpandableNotificationRow row = mNotificationStackScroller.getFirstActiveClearableNotifications(ROWS_HIGH_PRIORITY);
@@ -3120,9 +3120,9 @@ public class NotificationPanelViewController extends PanelViewController {
         boolean pulseColorAutomatic = Settings.System.getIntForUser(resolver,
                 Settings.System.NOTIFICATION_PULSE_COLOR_MODE, 0, UserHandle.USER_CURRENT) == 0;
         boolean pulseForAll = Settings.System.getIntForUser(resolver,
-                Settings.System.AMBIENT_LIGHT_PULSE_FOR_ALL, 0, UserHandle.USER_CURRENT) == 1;
+                Settings.System.AMBIENT_LIGHT_PULSE_FOR_ALL, 1, UserHandle.USER_CURRENT) == 1;
         int repeats = Settings.System.getIntForUser(resolver,
-                Settings.System.NOTIFICATION_PULSE_REPEATS, 0, UserHandle.USER_CURRENT);
+                Settings.System.NOTIFICATION_PULSE_REPEATS, 3, UserHandle.USER_CURRENT);
         if (animatePulse) {
             mAnimateNextPositionUpdate = true;
         }
@@ -3153,7 +3153,7 @@ public class NotificationPanelViewController extends PanelViewController {
                 }
             }
             if (mPulsing) {
-                if ((activeNotif && pulseReasonNotification) || pulseForAll) {
+                if (activeNotif && (pulseReasonNotification || pulseForAll)) {
                     // show the bars if we have to
                     if (pulseLights) {
                         mPulseLightsView.animateNotificationWithColor(pulseColor);

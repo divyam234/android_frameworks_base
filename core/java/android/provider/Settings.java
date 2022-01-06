@@ -5127,6 +5127,12 @@ public final class Settings {
         public static final String ALERT_SLIDER_SILENT_MODE = "alert_slider_silent_mode";
 
         /**
+         * Whether to mute media volume when in silent mode
+         * @hide
+         */
+        public static final String ALERT_SLIDER_MUTE_MEDIA = "alert_slider_mute_media";
+
+        /**
          * Whether to enable permissions hub
          * @hide
          */
@@ -5476,38 +5482,6 @@ public final class Settings {
          */
         public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
 
-        /**
-         * Shows custom date before clock time
-         * 0 - No Date
-         * 1 - Small Date
-         * 2 - Normal Date
-         * @hide
-         */
-        public static final String STATUSBAR_CLOCK_DATE_DISPLAY = "statusbar_clock_date_display";
-
-        /**
-         * Sets the date string style
-         * 0 - Regular style
-         * 1 - Lowercase
-         * 2 - Uppercase
-         * @hide
-         */
-        public static final String STATUSBAR_CLOCK_DATE_STYLE = "statusbar_clock_date_style";
-
-        /**
-         * Stores the java DateFormat string for the date
-         * @hide
-         */
-        public static final String STATUSBAR_CLOCK_DATE_FORMAT = "statusbar_clock_date_format";
-
-        /**
-         * Position of date
-         * 0 - Left of clock
-         * 1 - Right of clock
-         * @hide
-         */
-        public static final String STATUSBAR_CLOCK_DATE_POSITION = "statusbar_clock_date_position";
-
         /*
          * Whether to auto hide clock
          * @hide
@@ -5659,6 +5633,11 @@ public final class Settings {
          * 0 = 0ff, 1 = on
          */
         public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
+
+        /**
+         * Whether to kill background processes when the screen is turned off.
+         */
+        public static final String BACKGROUND_PROCESS_KILLER = "background_process_killer";
 
         /**
          * IMPORTANT: If you add a new public settings you also have to add it to
@@ -5964,14 +5943,6 @@ public final class Settings {
          * @hide
          */
         public static final String ADAPTIVE_PLAYBACK_TIMEOUT = "adaptive_playback_timeout";
-
-        /**
-         * Whether to show the kill app button in notification guts
-         *
-         * @hide
-         */
-        public static final String NOTIFICATION_GUTS_KILL_APP_BUTTON =
-                "notification_guts_kill_app_button";
 
        /**
          * Whether to wake the display when plugging or unplugging the charger
@@ -6349,9 +6320,37 @@ public final class Settings {
         public static final String FOD_RECOGNIZING_ANIMATION = "fod_recognizing_animation";
 
         /**
+         * The alpha value of the On-The-Go overlay.
+         *
          * @hide
          */
-        public static final String RECENTS_LOCKED_TASKS = "recents_locked_tasks";
+        public static final String ON_THE_GO_ALPHA = "on_the_go_alpha";
+
+        /**
+         * The camera instance to use.
+         * 0 = Rear Camera
+         * 1 = Front Camera
+         *
+         * @hide
+         */
+        public static final String ON_THE_GO_CAMERA = "on_the_go_camera";
+
+        /**
+         * Whether to blink flashlight for incoming calls
+         * 0 = Disabled (Default)
+         * 1 = Blink flashlight only in Ringer mode
+         * 2 = Blink flashlight only when ringer is not audible
+         * 3 = Blink flahslight only when entirely silent
+         * 4 = Blink flashlight always regardless of ringer mode
+         * @hide
+         */
+        public static final String FLASHLIGHT_ON_CALL = "flashlight_on_call";
+
+        /**
+         * Rate in Hz in which to blink flashlight_on_call
+         * @hide
+         */
+        public static final String FLASHLIGHT_ON_CALL_RATE = "flashlight_on_call_rate";
 
         /**
          * Keys we no longer back up under the current schema, but want to continue to
@@ -6495,10 +6494,6 @@ public final class Settings {
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_STYLE);
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_SECONDS);
             PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_AM_PM_STYLE);
-            PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_DISPLAY);
-            PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_STYLE);
-            PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_FORMAT);
-            PRIVATE_SETTINGS.add(STATUSBAR_CLOCK_DATE_POSITION);
             PRIVATE_SETTINGS.add(DONT_TOUCH_HEADSUP);
             PRIVATE_SETTINGS.add(BUTTON_BACKLIGHT_ONLY_WHEN_PRESSED);
             PRIVATE_SETTINGS.add(NAVIGATION_BAR_SHOW);
@@ -6525,6 +6520,8 @@ public final class Settings {
             PRIVATE_SETTINGS.add(VOLUME_WAKE_SCREEN);
             PRIVATE_SETTINGS.add(VOLUME_ANSWER_CALL);
             PRIVATE_SETTINGS.add(CLICK_PARTIAL_SCREENSHOT);
+            PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL);
+            PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL_RATE);
         }
 
         /**
@@ -9446,6 +9443,12 @@ public final class Settings {
         public static final String DOZE_TAP_SCREEN_GESTURE = "doze_tap_gesture";
 
         /**
+         * Enable\Disable swipe up or down gesture on ambient display like OOS
+         * @hide
+         */
+        public static final String DOZE_AMBIENT_SWIPE = "doze_ambient_swipe";
+
+        /**
          * Gesture that wakes up the display, showing some version of the lock screen.
          * @hide
          */
@@ -10882,12 +10885,6 @@ public final class Settings {
         public static final String SLEEP_MODE_AOD_TOGGLE = "sleep_mode_aod_toggle";
 
         /**
-         * Whether to enable Aggressive battery in Sleep Mode
-         * @hide
-         */
-        public static final String SLEEP_MODE_AGGRESSIVE_TOGGLE = "sleep_mode_aggressive_toggle";
-
-        /**
          * Ringer in Sleep Mode (0:OFF, 1:Vibrate, 2:DND, 3:Silent)
          * @hide
          */
@@ -11026,6 +11023,12 @@ public final class Settings {
          * @hide
          */
         public static final String PULSE_LOCATION = "pulse_location";
+
+        /**
+         * Pulse ambient music visualizer
+         * @hide
+         */
+        public static final String AMBIENT_PULSE_ENABLED = "ambient_pulse_enabled";
 
         /**
          * Pulse navbar music visualizer color type
@@ -14200,30 +14203,6 @@ public final class Settings {
          */
         public static final String ADB_ALLOWED_CONNECTION_TIME =
                 "adb_allowed_connection_time";
-
-        /**
-         * Whether or not to use aggressive device idle constants and ignore motion.
-         * Type: int (0 for false, 1 for true)
-         * Default: 0
-         * @hide
-         */
-        public static final String AGGRESSIVE_IDLE_ENABLED = "aggressive_idle_enabled";
-
-        /**
-         * Whether or not to use aggressive app idle constants.
-         * Type: int (0 for false, 1 for true)
-         * Default: 0
-         * @hide
-         */
-        public static final String AGGRESSIVE_STANDBY_ENABLED = "aggressive_standby_enabled";
-
-        /**
-         * Flag to automatically enable Aggressive Idle and Standby with battery saver.
-         * Type: int (0 for false, 1 for true)
-         * Default: 0
-         * @hide
-         */
-        public static final String AGGRESSIVE_BATTERY_SAVER = "aggressive_battery_saver";
 
         /**
          * Scaling factor for normal window animations. Setting to 0 will

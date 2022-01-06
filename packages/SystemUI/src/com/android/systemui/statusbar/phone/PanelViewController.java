@@ -427,7 +427,7 @@ public abstract class PanelViewController {
                 // We need to collapse the panel since we peeked to the small height.
                 mView.postOnAnimation(mPostCollapseRunnable);
             }
-        } else if (!mStatusBar.isBouncerShowing() && !mDoubleTapToSleepEnabled) {
+        } else if (!mStatusBar.isBouncerShowing()) {
             boolean expands = onEmptySpaceClick(mInitialTouchX);
             onTrackingStopped(expands);
         }
@@ -696,6 +696,10 @@ public abstract class PanelViewController {
             mExpandLatencyTracking = false;
         }
         float fhWithoutOverExpansion = getMaxPanelHeight() - getOverExpansionAmount();
+        if (isNaN(fhWithoutOverExpansion)) {
+            Log.wtf(TAG, "fhWithoutOverExpansion set to NaN");
+            fhWithoutOverExpansion = 0;
+        }
         if (mHeightAnimator == null) {
             float overExpansionPixels = Math.max(0, h - fhWithoutOverExpansion);
             if (getOverExpansionPixels() != overExpansionPixels && mTracking) {
